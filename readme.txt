@@ -10,20 +10,18 @@ A WordPress plugin for task management with private workspaces, task tracking, a
 
 == Description ==
 
-Task Management App provides a responsive dashboard for managing private workspaces and tasks from WordPress Admin or a frontend page.
-The frontend shortcode includes responsive app navigation, a product introduction, and branded footer scoped to its page; the active theme and other site pages are unchanged. The WordPress admin toolbar is hidden on this application page for a clean, signed-in experience.
+Task Management App adds a responsive, private task dashboard to WordPress Admin or a frontend page. Manage workspaces and tasks, organize work with search, simultaneous status and priority filters, sorting, due dates, and review recent activity.
 
 == Frontend setup ==
 
-1. In WordPress Admin, go to Pages > Add New and create a page named Task Manager.
-2. Add a Shortcode block in the block editor and enter [tma_app].
-3. Publish the page.
-4. To use the app as the site homepage, go to Settings > Reading, select A static page, and choose Task Manager as the Homepage.
+1. Create a WordPress page named Task Manager.
+2. Add [tma_app] using a Shortcode block and publish the page.
+3. Optionally select Task Manager as the static homepage under Settings > Reading.
 
-The plugin does not change the site's homepage or page settings when activated. Visitors must sign in to access task data. Each user's workspaces and tasks are private to that account.
+The plugin does not change homepage settings during activation. Visitors must sign in to access the application; user data is scoped to the signed-in account. Deactivating preserves data. Permanently deleting the plugin removes its database tables and all plugin data. Read README.md for complete installation, configuration, security, backup, and troubleshooting instructions.
 
 == Installation ==
 
-1. Upload the plugin folder to the /wp-content/plugins/ directory.
-2. Activate the plugin via the WordPress admin panel.
-3. Navigate to Task Management in the admin menu.
+1. Install the plugin ZIP through Plugins > Add New Plugin > Upload Plugin, or copy its folder into /wp-content/plugins/.
+2. Activate Task Management App in the WordPress Plugins screen.
+3. Open Task Management in the WordPress Admin menu, or follow Frontend setup above.
