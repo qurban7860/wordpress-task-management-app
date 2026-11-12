@@ -59,6 +59,7 @@ final class Plugin
         add_action('admin_enqueue_scripts', [$this, 'enqueueAdminAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
         add_filter('body_class', [$this, 'addFrontendBodyClass']);
+        add_filter('pre_get_document_title', [$this, 'filterFrontendDocumentTitle']);
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_action('plugins_loaded', [$this, 'initializePlugin']);
         add_shortcode('tma_app', [$this, 'renderShortcode']);
@@ -119,7 +120,7 @@ final class Plugin
     {
         $this->enqueueApplicationAssets('frontend');
 
-        return (new ApplicationRenderer())->render();
+        return (new ApplicationRenderer())->render(true);
     }
 
     public function addFrontendBodyClass(array $classes): array
@@ -132,6 +133,20 @@ final class Plugin
         }
 
         return $classes;
+    }
+
+    public function filterFrontendDocumentTitle(string $title): string
+    {
+        if (!is_singular()) {
+            return $title;
+        }
+
+        $post = get_post();
+        if (!$post || !has_shortcode($post->post_content, 'tma_app')) {
+            return $title;
+        }
+
+        return __('Task Manager', 'task-management-app');
     }
 
     public function enqueueApplicationAssets(string $context): void

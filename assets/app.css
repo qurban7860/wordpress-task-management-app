@@ -484,11 +484,91 @@
   color: #fff;
 }
 
-.tma-app-page .tma-app {
-  width: min(calc(100vw - 48px), 1440px);
+.tma-app-page .tma-site-frame {
+  width: min(calc(100vw - 40px), 1600px);
+  max-width: none;
+  margin-inline: 0;
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.tma-app-page {
+  background: #f5f4f1;
+}
+
+.tma-app-page .tma-site-header,
+.tma-app-page .tma-site-footer {
+  border: 1px solid #e7e5df;
+  background: #fff;
+}
+
+.tma-app-page .tma-site-header {
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 8px 26px rgba(40, 37, 28, .04);
+}
+
+.tma-app-page .tma-site-header__inner,
+.tma-app-page .tma-site-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 16px clamp(18px, 3vw, 36px);
+}
+
+.tma-app-page .tma-site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #24231f;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  text-decoration: none;
+}
+
+.tma-app-page .tma-site-brand__mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: #5555b8;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.tma-app-page .tma-site-header__tagline,
+.tma-app-page .tma-site-footer {
+  color: #77756e;
+  font-size: 13px;
+}
+
+.tma-app-page .tma-site-main {
+  padding: clamp(20px, 3vw, 36px) 0;
+}
+
+.tma-app-page .tma-app {
+  width: 100%;
+}
+
+.tma-app-page .tma-site-footer {
+  border-radius: 0 0 16px 16px;
+}
+
+.tma-app-page .tma-site-footer__inner {
+  flex-wrap: wrap;
+  min-height: 60px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.tma-app-page .tma-login-required {
+  margin: 0 auto;
 }
 
 .tma-app-page .entry-title,
@@ -503,6 +583,27 @@
 .tma-app-page .site-header,
 .tma-app-page .site-footer {
   display: none !important;
+}
+
+@media (max-width: 600px) {
+  .tma-app-page .tma-site-frame {
+    width: calc(100vw - 24px);
+  }
+
+  .tma-app-page .tma-site-header__inner,
+  .tma-app-page .tma-site-footer__inner {
+    align-items: flex-start;
+  }
+
+  .tma-app-page .tma-site-header__tagline {
+    max-width: 110px;
+    text-align: right;
+  }
+
+  .tma-app-page .tma-site-footer__inner {
+    flex-direction: column;
+    gap: 4px;
+  }
 }
 
 @media (max-width: 1000px) {
