@@ -1,0 +1,36 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local database backups
+*.sql
+*.sql.gz
+
+# PHPUnit cache
+.phpunit.cache/
+
+# Composer cache
+composer.phar
