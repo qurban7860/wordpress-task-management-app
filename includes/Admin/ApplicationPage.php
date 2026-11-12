@@ -20,9 +20,9 @@ final class ApplicationPage
     public function render(): void
     {
         ?>
-        <div class="wrap">
+        <div class="wrap tma-admin-page">
             <h1>Task Management App</h1>
-            <div id="tma-app-root"></div>
+            <?php echo (new \TMA\TaskManagement\Frontend\ApplicationRenderer())->render(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         </div>
         <?php
     }
@@ -34,25 +34,14 @@ final class ApplicationPage
             return;
         }
 
+        $adminStyle = TMA_TASK_MANAGEMENT_APP_PATH . 'assets/admin.css';
         wp_enqueue_style(
             'tma-admin-style',
             plugins_url('/assets/admin.css', TMA_TASK_MANAGEMENT_APP_FILE),
             [],
-            '1.0.0'
+            file_exists($adminStyle) ? (string) filemtime($adminStyle) : '1.0.0'
         );
 
-        wp_enqueue_script(
-            'tma-admin-app',
-            plugins_url('/assets/admin.js', TMA_TASK_MANAGEMENT_APP_FILE),
-            [],
-            '1.0.0',
-            true
-        );
-
-        wp_localize_script('tma-admin-app', 'tmaAppData', [
-            'restUrl' => rest_url('tma/v1'),
-            'nonce' => wp_create_nonce('wp_rest'),
-            'userId' => get_current_user_id(),
-        ]);
+        \TMA\TaskManagement\Core\Plugin::instance()->enqueueApplicationAssets('admin');
     }
 }

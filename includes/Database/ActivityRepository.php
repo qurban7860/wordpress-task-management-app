@@ -45,4 +45,18 @@ final class ActivityRepository
 
         return $wpdb->get_results($query, ARRAY_A) ?: [];
     }
+
+    public function deleteForWorkspace(int $workspaceId, int $userId): bool
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'tma_activity_logs';
+        $query = $wpdb->prepare(
+            "DELETE FROM {$table} WHERE workspace_id = %d AND user_id = %d",
+            $workspaceId,
+            $userId
+        );
+
+        return false !== $wpdb->query($query);
+    }
 }

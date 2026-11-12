@@ -4,6 +4,7 @@ namespace TMA\TaskManagement\Services;
 
 use TMA\TaskManagement\Database\ActivityRepository;
 use TMA\TaskManagement\Database\TaskRepository;
+use TMA\TaskManagement\Database\WorkspaceRepository;
 use TMA\TaskManagement\Security\Permissions;
 use TMA\TaskManagement\Security\Validator;
 
@@ -12,6 +13,7 @@ final class TaskService
     public function __construct(
         private TaskRepository $taskRepository,
         private ActivityRepository $activityRepository,
+        private WorkspaceRepository $workspaceRepository,
         private Validator $validator,
         private Permissions $permissions
     ) {}
@@ -19,7 +21,7 @@ final class TaskService
     public function getTasksForWorkspace(int $workspaceId, array $filters = []): array
     {
         $userId = get_current_user_id();
-        if ($userId <= 0) {
+        if ($userId <= 0 || !$this->workspaceRepository->getById($workspaceId, (int) $userId)) {
             return [];
         }
 
@@ -31,6 +33,10 @@ final class TaskService
         $userId = get_current_user_id();
         if ($userId <= 0) {
             return ['success' => false, 'message' => 'Authentication required.'];
+        }
+
+        if (!$this->workspaceRepository->getById($workspaceId, $userId)) {
+            return ['success' => false, 'message' => 'Workspace not found.'];
         }
 
         $validation = $this->validator->validateTask($task);

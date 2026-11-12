@@ -4,6 +4,7 @@ namespace TMA\TaskManagement\REST;
 
 use TMA\TaskManagement\Database\ActivityRepository;
 use TMA\TaskManagement\Database\TaskRepository;
+use TMA\TaskManagement\Database\WorkspaceRepository;
 use TMA\TaskManagement\Security\Permissions;
 use TMA\TaskManagement\Security\Validator;
 use TMA\TaskManagement\Services\TaskService;
@@ -32,7 +33,7 @@ final class TaskController
         ]);
 
         register_rest_route('tma/v1', '/tasks/(?P<id>\d+)', [
-            'methods' => [WP_REST_Server::EDITABLE, WP_REST_Server::DELETABLE],
+            'methods' => WP_REST_Server::EDITABLE . ', ' . WP_REST_Server::DELETABLE,
             'callback' => [$this, 'updateOrDeleteTask'],
             'permission_callback' => function () {
                 return is_user_logged_in();
@@ -50,7 +51,7 @@ final class TaskController
             'sort' => $request->get_param('sort'),
             'order' => $request->get_param('order'),
         ];
-        $service = new TaskService(new TaskRepository(), new ActivityRepository(), new Validator(), new Permissions());
+        $service = new TaskService(new TaskRepository(), new ActivityRepository(), new WorkspaceRepository(), new Validator(), new Permissions());
 
         return rest_ensure_response([
             'success' => true,
@@ -60,9 +61,9 @@ final class TaskController
 
     public function createTask(WP_REST_Request $request): WP_REST_Response
     {
-        $payload = $request->get_json_params();
+        $payload = $request->get_json_params() ?: [];
         $workspaceId = (int) ($payload['workspace_id'] ?? 0);
-        $service = new TaskService(new TaskRepository(), new ActivityRepository(), new Validator(), new Permissions());
+        $service = new TaskService(new TaskRepository(), new ActivityRepository(), new WorkspaceRepository(), new Validator(), new Permissions());
 
         return rest_ensure_response($service->create($workspaceId, $payload));
     }
@@ -70,8 +71,8 @@ final class TaskController
     public function updateOrDeleteTask(WP_REST_Request $request): WP_REST_Response
     {
         $taskId = (int) $request->get_param('id');
-        $payload = $request->get_json_params();
-        $service = new TaskService(new TaskRepository(), new ActivityRepository(), new Validator(), new Permissions());
+        $payload = $request->get_json_params() ?: [];
+        $service = new TaskService(new TaskRepository(), new ActivityRepository(), new WorkspaceRepository(), new Validator(), new Permissions());
 
         if ($request->get_method() === 'DELETE') {
             return rest_ensure_response($service->delete($taskId));

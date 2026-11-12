@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('tma-app-root');
   if (!root || typeof tmaAppData === 'undefined') {
     return;
@@ -9,337 +9,576 @@ document.addEventListener('DOMContentLoaded', function () {
     tasks: [],
     activity: [],
     selectedWorkspaceId: null,
-    isLoading: true,
+    taskRequest: 0,
+    activityRequest: 0,
+    confirmResolver: null,
+  };
+
+  const element = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+
+  const control = (labelText, field) => {
+    const label = element('label', 'tma-field');
+    const caption = element('span', 'tma-field-label', labelText);
+    label.append(caption, field);
+    return label;
+  };
+
+  const createInput = (id, type, className) => {
+    const input = element('input', className);
+    input.id = id;
+    input.type = type;
+    return input;
+  };
+
+  const createSelect = (id, className, options) => {
+    const select = element('select', className);
+    select.id = id;
+    options.forEach(([value, label]) => {
+      const option = element('option', '', label);
+      option.value = value;
+      select.append(option);
+    });
+    return select;
   };
 
   const buildLayout = () => {
-    root.innerHTML = `
-      <div class="tma-shell">
-        <aside class="tma-sidebar">
-          <h2>Workspaces</h2>
-          <ul class="tma-workspace-list" id="tma-workspace-list"></ul>
-          <div class="tma-toolbar" style="margin-top: 16px;">
-            <input id="tma-workspace-name" class="tma-input" type="text" placeholder="New workspace name" />
-            <button id="tma-create-workspace" class="tma-button secondary">Add workspace</button>
-          </div>
-        </aside>
-        <main class="tma-main-panel">
-          <h2>Tasks</h2>
-          <div class="tma-toolbar">
-            <input id="tma-task-search" class="tma-input" type="search" placeholder="Search tasks" style="max-width: 260px;" />
-            <select id="tma-task-status-filter" class="tma-select" style="max-width: 200px;">
-              <option value="">All statuses</option>
-              <option value="todo">To do</option>
-              <option value="in-progress">In progress</option>
-              <option value="done">Done</option>
-            </select>
-            <select id="tma-task-priority-filter" class="tma-select" style="max-width: 180px;">
-              <option value="">All priorities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-            <button id="tma-refresh" class="tma-button secondary">Refresh</button>
-            <button id="tma-new-task" class="tma-button">New task</button>
-          </div>
+    root.replaceChildren();
 
-          <div id="tma-task-form" style="display:none; margin-bottom: 20px;">
-            <div class="tma-grid">
-              <div>
-                <label>Title</label>
-                <input id="tma-task-title" class="tma-input" type="text" />
-              </div>
-              <div>
-                <label>Priority</label>
-                <select id="tma-task-priority" class="tma-select">
-                  <option value="low">Low</option>
-                  <option value="medium" selected>Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-              <div>
-                <label>Status</label>
-                <select id="tma-task-status" class="tma-select">
-                  <option value="todo" selected>To do</option>
-                  <option value="in-progress">In progress</option>
-                  <option value="done">Done</option>
-                </select>
-              </div>
-              <div>
-                <label>Due date</label>
-                <input id="tma-task-due-date" class="tma-input" type="date" />
-              </div>
-            </div>
-            <div style="margin-top: 12px;">
-              <label>Description</label>
-              <textarea id="tma-task-description" class="tma-textarea" rows="4"></textarea>
-            </div>
-            <div class="tma-toolbar" style="margin-top: 12px;">
-              <button id="tma-save-task" class="tma-button">Save task</button>
-              <button id="tma-cancel-task" class="tma-button secondary">Cancel</button>
-            </div>
-          </div>
+    const shell = element('div', 'tma-shell');
+    const sidebar = element('aside', 'tma-sidebar');
+    sidebar.setAttribute('aria-label', 'Workspaces');
+    const workspaceHeading = element('div', 'tma-section-heading');
+    workspaceHeading.append(
+      element('p', 'tma-eyebrow', 'YOUR PROJECTS'),
+      element('h2', '', 'Workspaces')
+    );
+    const workspaceList = element('ul', 'tma-workspace-list');
+    workspaceList.id = 'tma-workspace-list';
 
-          <ul id="tma-task-list" class="tma-task-list"></ul>
+    const workspaceForm = element('form', 'tma-workspace-form');
+    workspaceForm.id = 'tma-workspace-form';
+    const workspaceInput = createInput('tma-workspace-name', 'text', 'tma-input');
+    workspaceInput.placeholder = 'e.g. Marketing launch';
+    workspaceInput.maxLength = 255;
+    workspaceInput.required = true;
+    workspaceForm.append(
+      control('New workspace', workspaceInput),
+      Object.assign(element('button', 'tma-button tma-button--quiet', 'Add workspace'), { type: 'submit' })
+    );
+    sidebar.append(workspaceHeading, workspaceList, workspaceForm);
 
-          <h2 style="margin-top: 24px;">Recent activity</h2>
-          <ul id="tma-activity-list" class="tma-activity-list"></ul>
-        </main>
-      </div>
-    `;
+    const main = element('section', 'tma-main-panel');
+    main.setAttribute('aria-label', 'Task workspace');
+    const header = element('header', 'tma-page-header');
+    const titleBlock = element('div', 'tma-section-heading');
+    titleBlock.append(element('p', 'tma-eyebrow', 'PLAN WITH CLARITY'), element('h1', '', 'Tasks'));
+    const newTaskButton = element('button', 'tma-button', 'New task');
+    newTaskButton.id = 'tma-new-task';
+    newTaskButton.type = 'button';
+    header.append(titleBlock, newTaskButton);
 
-    bindEvents();
+    const toolbar = element('div', 'tma-toolbar');
+    const search = createInput('tma-task-search', 'search', 'tma-input');
+    search.placeholder = 'Search tasks';
+    search.setAttribute('aria-label', 'Search tasks');
+    const status = createSelect('tma-task-status-filter', 'tma-select', [
+      ['', 'All statuses'],
+      ['todo', 'To do'],
+      ['in-progress', 'In progress'],
+      ['done', 'Done'],
+    ]);
+    status.setAttribute('aria-label', 'Filter by status');
+    const priority = createSelect('tma-task-priority-filter', 'tma-select', [
+      ['', 'All priorities'],
+      ['low', 'Low priority'],
+      ['medium', 'Medium priority'],
+      ['high', 'High priority'],
+    ]);
+    priority.setAttribute('aria-label', 'Filter by priority');
+    const sort = createSelect('tma-task-sort', 'tma-select', [
+      ['due_date', 'Due date'],
+      ['created_at', 'Date created'],
+      ['title', 'Title'],
+      ['priority', 'Priority'],
+      ['status', 'Status'],
+    ]);
+    sort.setAttribute('aria-label', 'Sort tasks by');
+    const order = createSelect('tma-task-order', 'tma-select', [
+      ['ASC', 'Ascending'],
+      ['DESC', 'Descending'],
+    ]);
+    order.setAttribute('aria-label', 'Sort direction');
+    const refresh = element('button', 'tma-button tma-button--quiet', 'Refresh');
+    refresh.id = 'tma-refresh';
+    refresh.type = 'button';
+    toolbar.append(search, status, priority, sort, order, refresh);
+
+    const statusMessage = element('p', 'tma-status-message');
+    statusMessage.id = 'tma-status-message';
+    statusMessage.setAttribute('role', 'status');
+    statusMessage.setAttribute('aria-live', 'polite');
+    const taskList = element('ul', 'tma-task-list');
+    taskList.id = 'tma-task-list';
+
+    const activitySection = element('section', 'tma-activity-section');
+    activitySection.setAttribute('aria-labelledby', 'tma-activity-heading');
+    const activityHeading = element('h2', '', 'Recent activity');
+    activityHeading.id = 'tma-activity-heading';
+    const activityList = element('ul', 'tma-activity-list');
+    activityList.id = 'tma-activity-list';
+    activitySection.append(activityHeading, activityList);
+
+    const dialog = element('dialog', 'tma-dialog');
+    dialog.id = 'tma-task-dialog';
+    dialog.setAttribute('aria-labelledby', 'tma-dialog-heading');
+    const taskForm = element('form', 'tma-task-form');
+    taskForm.id = 'tma-task-form';
+    const dialogHeader = element('div', 'tma-dialog-header');
+    const dialogTitle = element('h2', '', 'New task');
+    dialogTitle.id = 'tma-dialog-heading';
+    const dialogIntro = element('p', '', 'Add details and keep your next step clear.');
+    dialogHeader.append(dialogTitle, dialogIntro);
+    const taskTitle = createInput('tma-task-title', 'text', 'tma-input');
+    taskTitle.maxLength = 255;
+    taskTitle.required = true;
+    const taskDescription = element('textarea', 'tma-textarea');
+    taskDescription.id = 'tma-task-description';
+    taskDescription.rows = 4;
+    const taskPriority = createSelect('tma-task-priority', 'tma-select', [
+      ['low', 'Low'],
+      ['medium', 'Medium'],
+      ['high', 'High'],
+    ]);
+    taskPriority.id = 'tma-task-priority';
+    taskPriority.value = 'medium';
+    const taskStatus = createSelect('tma-task-status', 'tma-select', [
+      ['todo', 'To do'],
+      ['in-progress', 'In progress'],
+      ['done', 'Done'],
+    ]);
+    taskStatus.id = 'tma-task-status';
+    const dueDate = createInput('tma-task-due-date', 'date', 'tma-input');
+    const fields = element('div', 'tma-form-grid');
+    fields.append(
+      control('Task title', taskTitle),
+      control('Description', taskDescription),
+      control('Priority', taskPriority),
+      control('Status', taskStatus),
+      control('Due date', dueDate)
+    );
+    const formActions = element('div', 'tma-dialog-actions');
+    const cancel = element('button', 'tma-button tma-button--quiet', 'Cancel');
+    cancel.type = 'button';
+    cancel.dataset.action = 'cancel-task';
+    const save = element('button', 'tma-button', 'Save task');
+    save.type = 'submit';
+    formActions.append(cancel, save);
+    taskForm.append(dialogHeader, fields, formActions);
+    dialog.append(taskForm);
+
+    const workspaceDialog = element('dialog', 'tma-dialog tma-dialog--compact');
+    workspaceDialog.id = 'tma-workspace-dialog';
+    workspaceDialog.setAttribute('aria-labelledby', 'tma-workspace-dialog-heading');
+    const workspaceEditForm = element('form', 'tma-task-form');
+    workspaceEditForm.id = 'tma-workspace-edit-form';
+    const workspaceEditHeading = element('h2', '', 'Rename workspace');
+    workspaceEditHeading.id = 'tma-workspace-dialog-heading';
+    const workspaceEditInput = createInput('tma-workspace-edit-name', 'text', 'tma-input');
+    workspaceEditInput.maxLength = 255;
+    workspaceEditInput.required = true;
+    const workspaceEditActions = element('div', 'tma-dialog-actions');
+    const workspaceEditCancel = element('button', 'tma-button tma-button--quiet', 'Cancel');
+    workspaceEditCancel.type = 'button';
+    workspaceEditCancel.dataset.action = 'cancel-workspace';
+    const workspaceEditSave = element('button', 'tma-button', 'Save workspace');
+    workspaceEditSave.type = 'submit';
+    workspaceEditActions.append(workspaceEditCancel, workspaceEditSave);
+    workspaceEditForm.append(workspaceEditHeading, control('Workspace name', workspaceEditInput), workspaceEditActions);
+    workspaceDialog.append(workspaceEditForm);
+
+    const confirmDialog = element('dialog', 'tma-dialog tma-dialog--compact');
+    confirmDialog.id = 'tma-confirm-dialog';
+    confirmDialog.setAttribute('aria-labelledby', 'tma-confirm-heading');
+    const confirmContent = element('div', 'tma-task-form');
+    const confirmHeading = element('h2', '', 'Please confirm');
+    confirmHeading.id = 'tma-confirm-heading';
+    const confirmMessage = element('p', 'tma-confirm-message');
+    confirmMessage.id = 'tma-confirm-message';
+    const confirmActions = element('div', 'tma-dialog-actions');
+    const confirmCancel = element('button', 'tma-button tma-button--quiet', 'Cancel');
+    confirmCancel.type = 'button';
+    confirmCancel.dataset.action = 'cancel-confirmation';
+    const confirmAccept = element('button', 'tma-button tma-button--danger', 'Delete');
+    confirmAccept.type = 'button';
+    confirmAccept.dataset.action = 'accept-confirmation';
+    confirmActions.append(confirmCancel, confirmAccept);
+    confirmContent.append(confirmHeading, confirmMessage, confirmActions);
+    confirmDialog.append(confirmContent);
+
+    main.append(header, toolbar, statusMessage, taskList, activitySection);
+    shell.append(sidebar, main);
+    root.append(shell, dialog, workspaceDialog, confirmDialog);
+
+    workspaceForm.addEventListener('submit', createWorkspace);
+    taskForm.addEventListener('submit', saveTask);
+    workspaceEditForm.addEventListener('submit', saveWorkspace);
+    confirmDialog.addEventListener('close', () => {
+      const resolve = state.confirmResolver;
+      state.confirmResolver = null;
+      if (resolve) resolve(confirmDialog.returnValue === 'confirm');
+    });
+    search.addEventListener('input', debounce(loadTasks, 250));
+    [status, priority, sort, order].forEach((input) => input.addEventListener('change', loadTasks));
+    refresh.addEventListener('click', loadWorkspaces);
+    newTaskButton.addEventListener('click', () => openTaskDialog());
+    root.addEventListener('click', handleClick);
+  };
+
+  const setStatus = (message, isError = false) => {
+    const target = root.querySelector('#tma-status-message');
+    if (!target) return;
+    target.textContent = message;
+    target.classList.toggle('is-error', isError);
+  };
+
+  const request = async (path, options = {}) => {
+    const response = await fetch(`${tmaAppData.restUrl}${path}`, {
+      credentials: 'same-origin',
+      ...options,
+      headers: {
+        'X-WP-Nonce': tmaAppData.nonce,
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...options.headers,
+      },
+    });
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error('The server returned an unreadable response.');
+    }
+
+    if (!response.ok || payload.success === false) {
+      throw new Error(payload.message || payload.message?.message || 'The request could not be completed.');
+    }
+    return payload;
+  };
+
+  const handleError = (error) => {
+    setStatus(error.message || 'Something went wrong. Please try again.', true);
   };
 
   const renderWorkspaceList = () => {
-    const list = document.getElementById('tma-workspace-list');
-    if (!list) return;
+    const list = root.querySelector('#tma-workspace-list');
+    list.replaceChildren();
 
-    list.innerHTML = state.workspaces.map((workspace) => `
-      <li class="tma-workspace-item ${workspace.id === state.selectedWorkspaceId ? 'is-selected' : ''}" data-id="${workspace.id}">
-        ${workspace.name}
-      </li>
-    `).join('');
+    state.workspaces.forEach((workspace) => {
+      const item = element('li', 'tma-workspace-item');
+      const select = element('button', 'tma-workspace-select', workspace.name);
+      select.type = 'button';
+      select.dataset.action = 'select-workspace';
+      select.dataset.id = workspace.id;
+      select.setAttribute('aria-pressed', String(Number(workspace.id) === state.selectedWorkspaceId));
+      if (Number(workspace.id) === state.selectedWorkspaceId) select.classList.add('is-selected');
+      item.append(select);
 
-    list.querySelectorAll('.tma-workspace-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        state.selectedWorkspaceId = Number(item.dataset.id);
-        renderWorkspaceList();
-        loadTasks();
-        loadActivity();
-      });
+      if (!['personal', 'work'].includes(String(workspace.name).toLowerCase())) {
+        const actions = element('div', 'tma-workspace-actions');
+        const rename = element('button', 'tma-icon-button', 'Rename');
+        rename.type = 'button';
+        rename.dataset.action = 'rename-workspace';
+        rename.dataset.id = workspace.id;
+        const remove = element('button', 'tma-icon-button tma-danger-action', 'Delete');
+        remove.type = 'button';
+        remove.dataset.action = 'delete-workspace';
+        remove.dataset.id = workspace.id;
+        actions.append(rename, remove);
+        item.append(actions);
+      }
+      list.append(item);
     });
   };
 
   const renderTasks = () => {
-    const list = document.getElementById('tma-task-list');
-    if (!list) return;
-
+    const list = root.querySelector('#tma-task-list');
+    list.replaceChildren();
     if (!state.tasks.length) {
-      list.innerHTML = '<li class="tma-activity-item">No tasks yet in this workspace.</li>';
+      list.append(element('li', 'tma-empty-state', 'No tasks match these filters. Add a task or adjust your search.'));
       return;
     }
 
-    list.innerHTML = state.tasks.map((task) => {
-      const badgeClass = task.status === 'done' ? 'success' : task.priority === 'high' ? 'warning' : '';
-      return `
-        <li class="tma-task-card" data-id="${task.id}">
-          <div class="tma-task-meta">
-            <span class="tma-badge ${badgeClass}">${task.priority}</span>
-            <span>${task.status}</span>
-          </div>
-          <h3>${task.title}</h3>
-          <p>${task.description || 'No description provided.'}</p>
-          <p><strong>Due:</strong> ${task.due_date || 'No due date'}</p>
-          <div class="tma-toolbar">
-            <button class="tma-button secondary tma-edit-task" data-id="${task.id}">Edit</button>
-            <button class="tma-button secondary tma-delete-task" data-id="${task.id}">Delete</button>
-          </div>
-        </li>
-      `;
-    }).join('');
-
-    list.querySelectorAll('.tma-edit-task').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = Number(button.dataset.id);
-        const task = state.tasks.find((item) => item.id === id);
-        if (!task) return;
-        populateTaskForm(task);
-      });
-    });
-
-    list.querySelectorAll('.tma-delete-task').forEach((button) => {
-      button.addEventListener('click', () => {
-        const id = Number(button.dataset.id);
-        fetch(`${tmaAppData.restUrl}/tasks/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'X-WP-Nonce': tmaAppData.nonce,
-            'Content-Type': 'application/json',
-          },
-        })
-          .then((response) => response.json())
-          .then((payload) => {
-            if (payload.success) {
-              loadTasks();
-              loadActivity();
-            }
-          });
-      });
+    state.tasks.forEach((task) => {
+      const item = element('li', 'tma-task-card');
+      const meta = element('div', 'tma-task-meta');
+      const priority = element('span', `tma-badge tma-badge--${task.priority}`, task.priority);
+      const status = element('span', `tma-task-status tma-task-status--${task.status}`, task.status.replace('-', ' '));
+      meta.append(priority, status);
+      const title = element('h3', 'tma-task-title', task.title);
+      const description = element('p', 'tma-task-description', task.description || 'No description provided.');
+      const dueDate = element('p', 'tma-task-due', task.due_date ? `Due ${task.due_date}` : 'No due date');
+      const actions = element('div', 'tma-task-actions');
+      const edit = element('button', 'tma-button tma-button--quiet', 'Edit');
+      edit.type = 'button';
+      edit.dataset.action = 'edit-task';
+      edit.dataset.id = task.id;
+      const remove = element('button', 'tma-button tma-button--quiet tma-danger-action', 'Delete');
+      remove.type = 'button';
+      remove.dataset.action = 'delete-task';
+      remove.dataset.id = task.id;
+      actions.append(edit, remove);
+      item.append(meta, title, description, dueDate, actions);
+      list.append(item);
     });
   };
 
   const renderActivity = () => {
-    const list = document.getElementById('tma-activity-list');
-    if (!list) return;
-
+    const list = root.querySelector('#tma-activity-list');
+    list.replaceChildren();
     if (!state.activity.length) {
-      list.innerHTML = '<li class="tma-activity-item">No recent activity.</li>';
+      list.append(element('li', 'tma-empty-state', 'Activity will appear here as you work.'));
       return;
     }
 
-    list.innerHTML = state.activity.map((entry) => `
-      <li class="tma-activity-item">
-        <strong>${entry.action_type}</strong> — ${entry.description}
-      </li>
-    `).join('');
+    state.activity.forEach((entry) => {
+      const item = element('li', 'tma-activity-item');
+      item.append(
+        element('span', 'tma-activity-dot'),
+        element('span', 'tma-activity-description', entry.description),
+        element('time', 'tma-activity-time', entry.created_at || '')
+      );
+      list.append(item);
+    });
   };
 
-  const bindEvents = () => {
-    document.getElementById('tma-create-workspace')?.addEventListener('click', createWorkspace);
-    document.getElementById('tma-refresh')?.addEventListener('click', refreshData);
-    document.getElementById('tma-new-task')?.addEventListener('click', showTaskForm);
-    document.getElementById('tma-save-task')?.addEventListener('click', saveTask);
-    document.getElementById('tma-cancel-task')?.addEventListener('click', hideTaskForm);
-    document.getElementById('tma-task-search')?.addEventListener('input', debounce(() => {
-      loadTasks();
-    }, 200));
-    document.getElementById('tma-task-status-filter')?.addEventListener('change', loadTasks);
-    document.getElementById('tma-task-priority-filter')?.addEventListener('change', loadTasks);
+  const loadWorkspaces = async () => {
+    setStatus('Loading workspaces…');
+    try {
+      const payload = await request('/workspaces');
+      state.workspaces = Array.isArray(payload.workspaces) ? payload.workspaces : [];
+      if (!state.workspaces.some((workspace) => Number(workspace.id) === state.selectedWorkspaceId)) {
+        state.selectedWorkspaceId = state.workspaces.length ? Number(state.workspaces[0].id) : null;
+      }
+      renderWorkspaceList();
+      if (state.selectedWorkspaceId) {
+        await Promise.all([loadTasks(), loadActivity()]);
+      } else {
+        state.tasks = [];
+        state.activity = [];
+        renderTasks();
+        renderActivity();
+      }
+      setStatus('');
+    } catch (error) {
+      handleError(error);
+    }
   };
 
-  const refreshData = () => {
-    loadWorkspaces();
-  };
-
-  function debounce(fn, timeout) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), timeout);
-    };
-  }
-
-  const createWorkspace = () => {
-    const input = document.getElementById('tma-workspace-name');
-    const name = input?.value.trim();
-    if (!name) return;
-
-    fetch(`${tmaAppData.restUrl}/workspaces`, {
-      method: 'POST',
-      headers: {
-        'X-WP-Nonce': tmaAppData.nonce,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name }),
-    })
-      .then((response) => response.json())
-      .then((payload) => {
-        if (payload.success) {
-          input.value = '';
-          loadWorkspaces();
-        }
-      });
-  };
-
-  const loadWorkspaces = () => {
-    fetch(`${tmaAppData.restUrl}/workspaces`, {
-      headers: { 'X-WP-Nonce': tmaAppData.nonce },
-    })
-      .then((response) => response.json())
-      .then((payload) => {
-        state.workspaces = payload.workspaces || [];
-        if (!state.selectedWorkspaceId && state.workspaces.length) {
-          state.selectedWorkspaceId = Number(state.workspaces[0].id);
-        }
-        renderWorkspaceList();
-        if (state.selectedWorkspaceId) {
-          loadTasks();
-          loadActivity();
-        }
-      });
-  };
-
-  const loadTasks = () => {
+  const loadTasks = async () => {
     if (!state.selectedWorkspaceId) return;
-
-    const search = document.getElementById('tma-task-search')?.value.trim() || '';
-    const status = document.getElementById('tma-task-status-filter')?.value || '';
-    const priority = document.getElementById('tma-task-priority-filter')?.value || '';
-    const params = new URLSearchParams({
+    const requestId = ++state.taskRequest;
+    const query = new URLSearchParams({
       workspace_id: String(state.selectedWorkspaceId),
-      search,
-      status,
-      priority,
-      sort: 'due_date',
-      order: 'ASC',
+      search: root.querySelector('#tma-task-search').value.trim(),
+      status: root.querySelector('#tma-task-status-filter').value,
+      priority: root.querySelector('#tma-task-priority-filter').value,
+      sort: root.querySelector('#tma-task-sort').value,
+      order: root.querySelector('#tma-task-order').value,
     });
 
-    fetch(`${tmaAppData.restUrl}/tasks?${params.toString()}`, {
-      headers: { 'X-WP-Nonce': tmaAppData.nonce },
-    })
-      .then((response) => response.json())
-      .then((payload) => {
-        state.tasks = payload.tasks || [];
-        renderTasks();
-      });
+    try {
+      const payload = await request(`/tasks?${query.toString()}`);
+      if (requestId !== state.taskRequest) return;
+      state.tasks = Array.isArray(payload.tasks) ? payload.tasks : [];
+      renderTasks();
+    } catch (error) {
+      if (requestId === state.taskRequest) handleError(error);
+    }
   };
 
-  const loadActivity = () => {
+  const loadActivity = async () => {
     if (!state.selectedWorkspaceId) return;
+    const requestId = ++state.activityRequest;
+    try {
+      const payload = await request(`/activity?workspace_id=${encodeURIComponent(state.selectedWorkspaceId)}`);
+      if (requestId !== state.activityRequest) return;
+      state.activity = Array.isArray(payload.activity) ? payload.activity : [];
+      renderActivity();
+    } catch (error) {
+      if (requestId === state.activityRequest) handleError(error);
+    }
+  };
 
-    fetch(`${tmaAppData.restUrl}/activity?workspace_id=${state.selectedWorkspaceId}`, {
-      headers: { 'X-WP-Nonce': tmaAppData.nonce },
-    })
-      .then((response) => response.json())
-      .then((payload) => {
-        state.activity = payload.activity || [];
-        renderActivity();
+  const createWorkspace = async (event) => {
+    event.preventDefault();
+    const input = root.querySelector('#tma-workspace-name');
+    const submit = event.currentTarget.querySelector('[type="submit"]');
+    if (!input.reportValidity()) return;
+    submit.disabled = true;
+    try {
+      const payload = await request('/workspaces', {
+        method: 'POST',
+        body: JSON.stringify({ name: input.value.trim() }),
       });
+      input.value = '';
+      state.selectedWorkspaceId = Number(payload.workspace.id);
+      await loadWorkspaces();
+      setStatus('Workspace created.');
+    } catch (error) {
+      handleError(error);
+    } finally {
+      submit.disabled = false;
+    }
   };
 
-  const showTaskForm = () => {
-    document.getElementById('tma-task-form').style.display = 'block';
+  const openWorkspaceDialog = (workspace) => {
+    const dialog = root.querySelector('#tma-workspace-dialog');
+    const form = root.querySelector('#tma-workspace-edit-form');
+    form.reset();
+    form.dataset.workspaceId = workspace.id;
+    root.querySelector('#tma-workspace-edit-name').value = workspace.name;
+    dialog.showModal();
+    root.querySelector('#tma-workspace-edit-name').focus();
   };
 
-  const hideTaskForm = () => {
-    document.getElementById('tma-task-form').style.display = 'none';
-    document.getElementById('tma-task-title').value = '';
-    document.getElementById('tma-task-description').value = '';
-    document.getElementById('tma-task-due-date').value = '';
+  const saveWorkspace = async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const input = root.querySelector('#tma-workspace-edit-name');
+    if (!form.reportValidity()) return;
+
+    try {
+      await request(`/workspaces/${encodeURIComponent(form.dataset.workspaceId)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: input.value.trim() }),
+      });
+      root.querySelector('#tma-workspace-dialog').close();
+      await loadWorkspaces();
+      setStatus('Workspace renamed.');
+    } catch (error) {
+      handleError(error);
+    }
   };
 
-  const populateTaskForm = (task) => {
-    document.getElementById('tma-task-title').value = task.title || '';
-    document.getElementById('tma-task-description').value = task.description || '';
-    document.getElementById('tma-task-priority').value = task.priority || 'medium';
-    document.getElementById('tma-task-status').value = task.status || 'todo';
-    document.getElementById('tma-task-due-date').value = task.due_date || '';
-    document.getElementById('tma-task-form').dataset.taskId = task.id;
-    document.getElementById('tma-task-form').style.display = 'block';
+  const confirmAction = (message) => new Promise((resolve) => {
+    const dialog = root.querySelector('#tma-confirm-dialog');
+    root.querySelector('#tma-confirm-message').textContent = message;
+    state.confirmResolver = resolve;
+    dialog.showModal();
+    root.querySelector('[data-action="accept-confirmation"]').focus();
+  });
+
+  const openTaskDialog = (task = null) => {
+    const dialog = root.querySelector('#tma-task-dialog');
+    const form = root.querySelector('#tma-task-form');
+    form.reset();
+    delete form.dataset.taskId;
+    root.querySelector('#tma-dialog-heading').textContent = task ? 'Edit task' : 'New task';
+    if (task) {
+      root.querySelector('#tma-task-title').value = task.title || '';
+      root.querySelector('#tma-task-description').value = task.description || '';
+      root.querySelector('#tma-task-priority').value = task.priority || 'medium';
+      root.querySelector('#tma-task-status').value = task.status || 'todo';
+      root.querySelector('#tma-task-due-date').value = task.due_date || '';
+      form.dataset.taskId = task.id;
+    }
+    dialog.showModal();
+    root.querySelector('#tma-task-title').focus();
   };
 
-  const saveTask = () => {
+  const saveTask = async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.reportValidity()) return;
+    const taskId = form.dataset.taskId;
     const payload = {
       workspace_id: state.selectedWorkspaceId,
-      title: document.getElementById('tma-task-title').value,
-      description: document.getElementById('tma-task-description').value,
-      priority: document.getElementById('tma-task-priority').value,
-      status: document.getElementById('tma-task-status').value,
-      due_date: document.getElementById('tma-task-due-date').value,
+      title: root.querySelector('#tma-task-title').value.trim(),
+      description: root.querySelector('#tma-task-description').value.trim(),
+      priority: root.querySelector('#tma-task-priority').value,
+      status: root.querySelector('#tma-task-status').value,
+      due_date: root.querySelector('#tma-task-due-date').value,
     };
 
-    const taskId = document.getElementById('tma-task-form').dataset.taskId;
-    const method = taskId ? 'PUT' : 'POST';
-    const endpoint = taskId ? `${tmaAppData.restUrl}/tasks/${taskId}` : `${tmaAppData.restUrl}/tasks`;
-
-    fetch(endpoint, {
-      method,
-      headers: {
-        'X-WP-Nonce': tmaAppData.nonce,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.success) {
-          hideTaskForm();
-          loadTasks();
-          loadActivity();
-        }
+    try {
+      await request(taskId ? `/tasks/${encodeURIComponent(taskId)}` : '/tasks', {
+        method: taskId ? 'PUT' : 'POST',
+        body: JSON.stringify(payload),
       });
+      root.querySelector('#tma-task-dialog').close();
+      await Promise.all([loadTasks(), loadActivity()]);
+      setStatus(taskId ? 'Task updated.' : 'Task created.');
+    } catch (error) {
+      handleError(error);
+    }
   };
+
+  const handleClick = async (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button || !root.contains(button)) return;
+    const id = Number(button.dataset.id);
+
+    try {
+      switch (button.dataset.action) {
+        case 'cancel-task':
+          root.querySelector('#tma-task-dialog').close();
+          break;
+        case 'cancel-workspace':
+          root.querySelector('#tma-workspace-dialog').close();
+          break;
+        case 'cancel-confirmation':
+          root.querySelector('#tma-confirm-dialog').close('cancel');
+          break;
+        case 'accept-confirmation':
+          root.querySelector('#tma-confirm-dialog').close('confirm');
+          break;
+        case 'select-workspace':
+          state.selectedWorkspaceId = id;
+          renderWorkspaceList();
+          await Promise.all([loadTasks(), loadActivity()]);
+          break;
+        case 'edit-task': {
+          const task = state.tasks.find((item) => Number(item.id) === id);
+          if (task) openTaskDialog(task);
+          break;
+        }
+        case 'delete-task':
+          if (!(await confirmAction('Delete this task? This action cannot be undone.'))) return;
+          await request(`/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          await Promise.all([loadTasks(), loadActivity()]);
+          setStatus('Task deleted.');
+          break;
+        case 'rename-workspace': {
+          const workspace = state.workspaces.find((item) => Number(item.id) === id);
+          if (!workspace) return;
+          openWorkspaceDialog(workspace);
+          break;
+        }
+        case 'delete-workspace':
+          if (!(await confirmAction('Delete this workspace and all its tasks and activity? This action cannot be undone.'))) return;
+          await request(`/workspaces/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          if (state.selectedWorkspaceId === id) state.selectedWorkspaceId = null;
+          await loadWorkspaces();
+          setStatus('Workspace deleted.');
+          break;
+      }
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  function debounce(callback, delay) {
+    let timer;
+    return (...args) => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => callback(...args), delay);
+    };
+  }
 
   buildLayout();
   loadWorkspaces();

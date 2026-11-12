@@ -3,6 +3,7 @@
 namespace TMA\TaskManagement\REST;
 
 use TMA\TaskManagement\Database\ActivityRepository;
+use TMA\TaskManagement\Database\WorkspaceRepository;
 use TMA\TaskManagement\Services\ActivityService;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -24,7 +25,7 @@ final class ActivityController
     public function getActivity(WP_REST_Request $request): WP_REST_Response
     {
         $workspaceId = (int) ($request->get_param('workspace_id') ?? 0);
-        $service = new ActivityService(new ActivityRepository());
+        $service = new ActivityService(new ActivityRepository(), new WorkspaceRepository());
 
         return rest_ensure_response([
             'success' => true,

@@ -10,7 +10,16 @@ A WordPress plugin for task management with private workspaces, task tracking, a
 
 == Description ==
 
-Task Management App provides a responsive admin dashboard for managing workspaces and tasks directly within WordPress.
+Task Management App provides a responsive dashboard for managing private workspaces and tasks from WordPress Admin or a frontend page.
+
+== Frontend setup ==
+
+1. In WordPress Admin, go to Pages > Add New and create a page named Task Manager.
+2. Add a Shortcode block in the block editor and enter [tma_app].
+3. Publish the page.
+4. To use the app as the site homepage, go to Settings > Reading, select A static page, and choose Task Manager as the Homepage.
+
+The plugin does not change the site's homepage or page settings when activated. Visitors must sign in to access task data. Each user's workspaces and tasks are private to that account.
 
 == Installation ==
 

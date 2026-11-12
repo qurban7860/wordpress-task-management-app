@@ -13,7 +13,7 @@ final class Database
         $taskTable = $wpdb->prefix . 'tma_tasks';
         $activityTable = $wpdb->prefix . 'tma_activity_logs';
 
-        $sql = "CREATE TABLE IF NOT EXISTS {$workspaceTable} (
+        $sql = "CREATE TABLE {$workspaceTable} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             name VARCHAR(255) NOT NULL,
@@ -24,7 +24,7 @@ final class Database
             KEY name (name)
         ) {$charsetCollate};
 
-        CREATE TABLE IF NOT EXISTS {$taskTable} (
+        CREATE TABLE {$taskTable} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             workspace_id BIGINT UNSIGNED NOT NULL,
@@ -43,7 +43,7 @@ final class Database
             KEY due_date (due_date)
         ) {$charsetCollate};
 
-        CREATE TABLE IF NOT EXISTS {$activityTable} (
+        CREATE TABLE {$activityTable} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id BIGINT UNSIGNED NOT NULL,
             workspace_id BIGINT UNSIGNED NOT NULL,

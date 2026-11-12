@@ -1,0 +1,601 @@
+.tma-app {
+  --tma-bg: #f5f4f1;
+  --tma-surface: #fff;
+  --tma-border: #e7e5df;
+  --tma-text: #24231f;
+  --tma-muted: #77756e;
+  --tma-accent: #5555b8;
+  --tma-accent-soft: #eeedfb;
+  --tma-danger: #a63d3d;
+  color: var(--tma-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  width: 100%;
+}
+
+.tma-app *,
+.tma-app *::before,
+.tma-app *::after {
+  box-sizing: border-box;
+}
+
+.tma-app button,
+.tma-app input,
+.tma-app select,
+.tma-app textarea {
+  font: inherit;
+}
+
+.tma-app button {
+  cursor: pointer;
+}
+
+.tma-app button:focus-visible,
+.tma-app input:focus-visible,
+.tma-app select:focus-visible,
+.tma-app textarea:focus-visible,
+.tma-app a:focus-visible {
+  outline: 3px solid rgba(85, 85, 184, .35);
+  outline-offset: 2px;
+}
+
+.tma-app .tma-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  min-height: 640px;
+}
+
+.tma-app .tma-sidebar,
+.tma-app .tma-main-panel {
+  min-width: 0;
+  border: 1px solid var(--tma-border);
+  border-radius: 18px;
+  background: var(--tma-surface);
+  box-shadow: 0 14px 40px rgba(40, 37, 28, .045);
+}
+
+.tma-app .tma-sidebar {
+  padding: 24px 18px;
+}
+
+.tma-app .tma-main-panel {
+  padding: clamp(20px, 3vw, 36px);
+}
+
+.tma-app .tma-section-heading {
+  margin-bottom: 24px;
+}
+
+.tma-app .tma-eyebrow {
+  margin: 0 0 8px;
+  color: var(--tma-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.tma-app .tma-section-heading h1,
+.tma-app .tma-section-heading h2 {
+  margin: 0;
+  color: var(--tma-text);
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -.035em;
+  line-height: 1.2;
+}
+
+.tma-app .tma-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.tma-app .tma-page-header .tma-section-heading {
+  margin: 0;
+}
+
+.tma-app .tma-workspace-list,
+.tma-app .tma-task-list,
+.tma-app .tma-activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tma-app .tma-workspace-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.tma-app .tma-workspace-select {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tma-text);
+  text-align: left;
+}
+
+.tma-app .tma-workspace-select:hover {
+  background: #f7f6f3;
+}
+
+.tma-app .tma-workspace-select.is-selected {
+  background: var(--tma-accent-soft);
+  color: var(--tma-accent);
+  font-weight: 650;
+}
+
+.tma-app .tma-workspace-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.tma-app .tma-icon-button {
+  padding: 5px 7px;
+  border: 0;
+  background: transparent;
+  color: var(--tma-muted);
+  font-size: 11px;
+}
+
+.tma-app .tma-icon-button:hover,
+.tma-app .tma-danger-action {
+  color: var(--tma-danger);
+}
+
+.tma-app .tma-workspace-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--tma-border);
+}
+
+.tma-app .tma-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.tma-app .tma-field-label {
+  color: #54524b;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.tma-app .tma-input,
+.tma-app .tma-select,
+.tma-app .tma-textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--tma-border);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--tma-text);
+}
+
+.tma-app .tma-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.tma-app .tma-toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) repeat(4, minmax(110px, .7fr)) auto;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tma-app .tma-button {
+  display: inline-flex;
+  min-height: 42px;
+  justify-content: center;
+  align-items: center;
+  padding: 9px 15px;
+  border: 1px solid var(--tma-accent);
+  border-radius: 9px;
+  background: var(--tma-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+
+.tma-app .tma-button:hover {
+  border-color: #41419a;
+  background: #41419a;
+  color: #fff;
+}
+
+.tma-app .tma-button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.tma-app .tma-button--quiet {
+  border-color: var(--tma-border);
+  background: #fff;
+  color: var(--tma-text);
+}
+
+.tma-app .tma-button--quiet:hover {
+  border-color: #c9c6bd;
+  background: #f7f6f3;
+  color: var(--tma-text);
+}
+
+.tma-app .tma-button--danger {
+  border-color: var(--tma-danger);
+  background: var(--tma-danger);
+}
+
+.tma-app .tma-button--danger:hover {
+  border-color: #852d2d;
+  background: #852d2d;
+}
+
+.tma-app .tma-confirm-message {
+  margin: 12px 0 0;
+  color: #55534d;
+}
+
+.tma-app .tma-status-message {
+  min-height: 22px;
+  margin: 0 0 10px;
+  color: var(--tma-muted);
+  font-size: 13px;
+}
+
+.tma-app .tma-status-message:empty {
+  display: none;
+}
+
+.tma-app .tma-status-message.is-error {
+  color: var(--tma-danger);
+}
+
+.tma-app .tma-task-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 14px;
+}
+
+.tma-app .tma-task-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--tma-border);
+  border-radius: 13px;
+  background: linear-gradient(160deg, #fff, #fbfaf8);
+}
+
+.tma-app .tma-task-meta,
+.tma-app .tma-task-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.tma-app .tma-task-meta {
+  margin-bottom: 13px;
+  color: var(--tma-muted);
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.tma-app .tma-badge {
+  display: inline-flex;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #f0efe9;
+  color: #58564f;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.tma-app .tma-badge--high {
+  background: #fce9e5;
+  color: #9e3829;
+}
+
+.tma-app .tma-badge--medium {
+  background: #fff2d9;
+  color: #8d5b05;
+}
+
+.tma-app .tma-badge--low {
+  background: #e7f2e7;
+  color: #356a3a;
+}
+
+.tma-app .tma-task-title {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.tma-app .tma-task-description {
+  min-height: 42px;
+  margin: 0 0 14px;
+  color: #66645e;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.tma-app .tma-task-due {
+  margin: 0 0 14px;
+  color: var(--tma-muted);
+  font-size: 12px;
+}
+
+.tma-app .tma-task-actions {
+  justify-content: flex-start;
+  padding-top: 12px;
+  border-top: 1px solid var(--tma-border);
+}
+
+.tma-app .tma-task-actions .tma-button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.tma-app .tma-activity-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--tma-border);
+}
+
+.tma-app .tma-activity-section h2 {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+
+.tma-app .tma-activity-item {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 0;
+  border-bottom: 1px solid #f0eee9;
+}
+
+.tma-app .tma-activity-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tma-accent);
+}
+
+.tma-app .tma-activity-description {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.tma-app .tma-activity-time {
+  color: var(--tma-muted);
+  font-size: 11px;
+}
+
+.tma-app .tma-empty-state,
+.tma-app .tma-app-loading {
+  grid-column: 1 / -1;
+  padding: 28px;
+  border: 1px dashed var(--tma-border);
+  border-radius: 12px;
+  color: var(--tma-muted);
+  text-align: center;
+}
+
+.tma-app .tma-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(90vh, 760px);
+  padding: 0;
+  border: 1px solid var(--tma-border);
+  border-radius: 16px;
+  color: var(--tma-text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .2);
+}
+
+.tma-app .tma-dialog::backdrop {
+  background: rgba(25, 24, 21, .48);
+  backdrop-filter: blur(2px);
+}
+
+.tma-app .tma-task-form {
+  padding: 24px;
+}
+
+.tma-app .tma-dialog-header {
+  margin-bottom: 20px;
+}
+
+.tma-app .tma-dialog-header h2 {
+  margin: 0 0 5px;
+  font-size: 22px;
+}
+
+.tma-app .tma-dialog-header p {
+  margin: 0;
+  color: var(--tma-muted);
+  font-size: 13px;
+}
+
+.tma-app .tma-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tma-app .tma-form-grid .tma-field:nth-child(1),
+.tma-app .tma-form-grid .tma-field:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+.tma-app .tma-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.tma-login-required {
+  max-width: 560px;
+  margin: 48px auto;
+  padding: 36px;
+  border: 1px solid #e7e5df;
+  border-radius: 16px;
+  background: #fff;
+  color: #24231f;
+  text-align: center;
+}
+
+.tma-login-required h2 {
+  margin: 0 0 10px;
+}
+
+.tma-login-link {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: #5555b8;
+  color: #fff;
+  text-decoration: none;
+}
+
+.tma-login-link:hover {
+  background: #41419a;
+  color: #fff;
+}
+
+.tma-app-page .tma-app {
+  width: min(calc(100vw - 48px), 1440px);
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tma-app-page .entry-title,
+.tma-app-page .wp-block-post-title {
+  display: none !important;
+}
+
+.tma-app-page .wp-site-blocks > header,
+.tma-app-page .wp-site-blocks > footer,
+.tma-app-page #masthead,
+.tma-app-page #colophon,
+.tma-app-page .site-header,
+.tma-app-page .site-footer {
+  display: none !important;
+}
+
+@media (max-width: 1000px) {
+  .tma-app .tma-shell {
+    grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .tma-app .tma-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tma-app .tma-toolbar #tma-task-search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .tma-app .tma-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tma-app .tma-sidebar {
+    padding: 18px;
+  }
+
+  .tma-app .tma-section-heading {
+    margin-bottom: 16px;
+  }
+
+  .tma-app .tma-sidebar .tma-section-heading {
+    margin-bottom: 10px;
+  }
+
+  .tma-app .tma-workspace-list {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+  }
+
+  .tma-app .tma-workspace-item {
+    flex: 0 0 auto;
+  }
+
+  .tma-app .tma-workspace-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    margin-top: 15px;
+    padding-top: 15px;
+  }
+
+  .tma-app .tma-workspace-form .tma-field {
+    min-width: 0;
+  }
+
+  .tma-app .tma-main-panel {
+    padding: 19px;
+  }
+
+  .tma-app .tma-page-header {
+    align-items: flex-start;
+  }
+
+  .tma-app .tma-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tma-app .tma-toolbar #tma-task-search {
+    grid-column: 1 / -1;
+  }
+
+  .tma-app .tma-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tma-app .tma-form-grid .tma-field {
+    grid-column: auto;
+  }
+
+  .tma-app .tma-activity-item {
+    grid-template-columns: 8px minmax(0, 1fr);
+  }
+
+  .tma-app .tma-activity-time {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tma-app *,
+  .tma-app *::before,
+  .tma-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

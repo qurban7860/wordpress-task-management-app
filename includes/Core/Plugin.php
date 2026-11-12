@@ -3,6 +3,7 @@
 namespace TMA\TaskManagement\Core;
 
 use TMA\TaskManagement\Admin\ApplicationPage;
+use TMA\TaskManagement\Frontend\ApplicationRenderer;
 use TMA\TaskManagement\Database\WorkspaceRepository;
 use TMA\TaskManagement\REST\ActivityController;
 use TMA\TaskManagement\REST\TaskController;
@@ -52,11 +53,15 @@ final class Plugin
         require_once __DIR__ . '/../REST/TaskController.php';
         require_once __DIR__ . '/../REST/ActivityController.php';
         require_once __DIR__ . '/../Admin/ApplicationPage.php';
+        require_once __DIR__ . '/../Frontend/ApplicationRenderer.php';
 
         add_action('admin_menu', [$this, 'registerAdminPage']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAdminAssets']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
+        add_filter('body_class', [$this, 'addFrontendBodyClass']);
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_action('plugins_loaded', [$this, 'initializePlugin']);
+        add_shortcode('tma_app', [$this, 'renderShortcode']);
     }
 
     public function initializePlugin(): void
@@ -96,13 +101,80 @@ final class Plugin
         $page->enqueueAssets();
     }
 
+    public function enqueueFrontendAssets(): void
+    {
+        if (!is_singular()) {
+            return;
+        }
+
+        $post = get_post();
+        if (!$post || !has_shortcode($post->post_content, 'tma_app')) {
+            return;
+        }
+
+        $this->enqueueApplicationAssets('frontend');
+    }
+
+    public function renderShortcode(): string
+    {
+        $this->enqueueApplicationAssets('frontend');
+
+        return (new ApplicationRenderer())->render();
+    }
+
+    public function addFrontendBodyClass(array $classes): array
+    {
+        if (is_singular()) {
+            $post = get_post();
+            if ($post && has_shortcode($post->post_content, 'tma_app')) {
+                $classes[] = 'tma-app-page';
+            }
+        }
+
+        return $classes;
+    }
+
+    public function enqueueApplicationAssets(string $context): void
+    {
+        $styleFile = TMA_TASK_MANAGEMENT_APP_PATH . 'assets/app.css';
+        $scriptFile = TMA_TASK_MANAGEMENT_APP_PATH . 'assets/admin.js';
+        $styleVersion = file_exists($styleFile) ? (string) filemtime($styleFile) : '1.0.0';
+        $scriptVersion = file_exists($scriptFile) ? (string) filemtime($scriptFile) : '1.0.0';
+        $styleHandle = 'tma-' . $context . '-app';
+        $scriptHandle = 'tma-' . $context . '-app';
+
+        wp_enqueue_style(
+            $styleHandle,
+            plugins_url('/assets/app.css', TMA_TASK_MANAGEMENT_APP_FILE),
+            [],
+            $styleVersion
+        );
+        wp_enqueue_script(
+            $scriptHandle,
+            plugins_url('/assets/admin.js', TMA_TASK_MANAGEMENT_APP_FILE),
+            [],
+            $scriptVersion,
+            true
+        );
+        wp_localize_script($scriptHandle, 'tmaAppData', [
+            'restUrl' => esc_url_raw(rest_url('tma/v1')),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'loginUrl' => esc_url_raw(wp_login_url(is_singular() ? get_permalink() : '')),
+        ]);
+    }
+
     private function initializeDefaultWorkspaceForExistingUsers(): void
     {
         if (!is_user_logged_in()) {
             return;
         }
 
-        $workspaceService = new WorkspaceService(new WorkspaceRepository(), new \TMA\TaskManagement\Security\Validator());
+        $workspaceService = new WorkspaceService(
+            new WorkspaceRepository(),
+            new \TMA\TaskManagement\Security\Validator(),
+            new \TMA\TaskManagement\Database\TaskRepository(),
+            new \TMA\TaskManagement\Database\ActivityRepository()
+        );
         $workspaceService->ensureDefaultWorkspacesForUser(get_current_user_id());
     }
 }

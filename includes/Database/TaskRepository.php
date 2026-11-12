@@ -120,4 +120,18 @@ final class TaskRepository
 
         return false !== $wpdb->query($query);
     }
+
+    public function deleteForWorkspace(int $workspaceId, int $userId): bool
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'tma_tasks';
+        $query = $wpdb->prepare(
+            "DELETE FROM {$table} WHERE workspace_id = %d AND user_id = %d",
+            $workspaceId,
+            $userId
+        );
+
+        return false !== $wpdb->query($query);
+    }
 }
