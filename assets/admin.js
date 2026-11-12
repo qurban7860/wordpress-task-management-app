@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     main.setAttribute('aria-label', 'Task workspace');
     const header = element('header', 'tma-page-header');
     const titleBlock = element('div', 'tma-section-heading');
-    titleBlock.append(element('p', 'tma-eyebrow', 'PLAN WITH CLARITY'), element('h1', '', 'Tasks'));
+    titleBlock.append(element('p', 'tma-eyebrow', 'PLAN WITH CLARITY'), element('h2', '', 'Tasks'));
     const newTaskButton = element('button', 'tma-button', 'New task');
     newTaskButton.id = 'tma-new-task';
     newTaskButton.type = 'button';

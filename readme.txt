@@ -11,7 +11,7 @@ A WordPress plugin for task management with private workspaces, task tracking, a
 == Description ==
 
 Task Management App provides a responsive dashboard for managing private workspaces and tasks from WordPress Admin or a frontend page.
-The frontend shortcode includes a responsive, branded application header and footer scoped to its page; the active theme and other site pages are unchanged.
+The frontend shortcode includes responsive app navigation, a product introduction, and branded footer scoped to its page; the active theme and other site pages are unchanged. The WordPress admin toolbar is hidden on this application page for a clean, signed-in experience.
 
 == Frontend setup ==
 

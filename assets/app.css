@@ -485,7 +485,7 @@
 }
 
 .tma-app-page .tma-site-frame {
-  width: min(calc(100vw - 40px), 1600px);
+  width: min(calc(100vw - 48px), 1480px);
   max-width: none;
   margin-inline: 0;
   position: relative;
@@ -494,18 +494,30 @@
 }
 
 .tma-app-page {
-  background: #f5f4f1;
+  background: #f4f6fb;
+}
+
+.tma-app-page .wp-site-blocks > main,
+.tma-app-page .wp-block-post-content {
+  margin-block-start: 0 !important;
+}
+
+.tma-app-page .wp-site-blocks > main > .wp-block-group {
+  margin-block-start: 0 !important;
+  padding-block: 0 !important;
 }
 
 .tma-app-page .tma-site-header,
 .tma-app-page .tma-site-footer {
-  border: 1px solid #e7e5df;
+  border: 1px solid #e5e9f2;
   background: #fff;
 }
 
 .tma-app-page .tma-site-header {
-  border-radius: 16px 16px 0 0;
-  box-shadow: 0 8px 26px rgba(40, 37, 28, .04);
+  position: relative;
+  z-index: 1;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 8px 26px rgba(30, 42, 70, .06);
 }
 
 .tma-app-page .tma-site-header__inner,
@@ -514,61 +526,176 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  max-width: 1600px;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 16px clamp(18px, 3vw, 36px);
+  padding: 14px clamp(18px, 3vw, 32px);
 }
 
 .tma-app-page .tma-site-brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  color: #24231f;
+  gap: 11px;
+  color: #17213a;
   font-size: 16px;
   font-weight: 700;
-  letter-spacing: -.025em;
+  letter-spacing: -.03em;
   text-decoration: none;
 }
 
 .tma-app-page .tma-site-brand__mark {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   place-items: center;
-  border-radius: 11px;
-  background: #5555b8;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #6465d9, #4546ae);
   color: #fff;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 750;
+  box-shadow: 0 4px 10px rgba(75, 76, 182, .22);
 }
 
-.tma-app-page .tma-site-header__tagline,
-.tma-app-page .tma-site-footer {
-  color: #77756e;
+.tma-app-page .tma-site-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.4vw, 32px);
+}
+
+.tma-app-page .tma-site-nav__link {
+  color: #626b80;
   font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+.tma-app-page .tma-site-nav__link:hover {
+  color: #4546ae;
+}
+
+.tma-app-page .tma-site-nav__cta {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #4f50ba;
+  border-radius: 10px;
+  background: #5555b8;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.tma-app-page .tma-site-nav__cta:hover {
+  transform: translateY(-1px);
+  background: #4546a5;
+  box-shadow: 0 5px 12px rgba(75, 76, 182, .2);
+  color: #fff;
+}
+
+.tma-app-page .tma-site-nav__link:focus-visible,
+.tma-app-page .tma-site-nav__cta:focus-visible,
+.tma-app-page .tma-site-brand:focus-visible {
+  outline: 3px solid rgba(85, 85, 184, .35);
+  outline-offset: 3px;
 }
 
 .tma-app-page .tma-site-main {
-  padding: clamp(20px, 3vw, 36px) 0;
+  padding: clamp(30px, 5vw, 58px) 0 clamp(28px, 4vw, 48px);
+}
+
+.tma-app-page .tma-app-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin: 0 0 clamp(24px, 3vw, 36px);
+  padding: 0 clamp(4px, 1vw, 12px);
+}
+
+.tma-app-page .tma-app-intro__copy {
+  max-width: 760px;
+}
+
+.tma-app-page .tma-app-intro__eyebrow {
+  margin: 0 0 12px;
+  color: #5555b8;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.tma-app-page .tma-app-intro h1 {
+  margin: 0;
+  color: #19233b;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -.045em;
+  line-height: 1.08;
+}
+
+.tma-app-page .tma-app-intro__description {
+  max-width: 690px;
+  margin: 14px 0 0;
+  color: #626b80;
+  font-size: clamp(14px, 1.35vw, 16px);
+  line-height: 1.7;
+}
+
+.tma-app-page .tma-app-intro__note {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 4px;
+  padding: 10px 13px;
+  border: 1px solid #e5e9f2;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .76);
+  color: #58647c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tma-app-page .tma-app-intro__status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #39a77a;
+  box-shadow: 0 0 0 3px rgba(57, 167, 122, .12);
 }
 
 .tma-app-page .tma-app {
   width: 100%;
 }
 
+.tma-app-page .tma-app .tma-sidebar,
+.tma-app-page .tma-app .tma-main-panel {
+  border-color: #e5e9f2;
+  border-radius: 18px;
+  box-shadow: 0 14px 36px rgba(30, 42, 70, .055);
+}
+
 .tma-app-page .tma-site-footer {
-  border-radius: 0 0 16px 16px;
+  border-radius: 16px 16px 0 0;
+  color: #687187;
+  font-size: 12px;
 }
 
 .tma-app-page .tma-site-footer__inner {
   flex-wrap: wrap;
   min-height: 60px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 .tma-app-page .tma-login-required {
   margin: 0 auto;
+  box-shadow: 0 16px 40px rgba(30, 42, 70, .07);
 }
 
 .tma-app-page .entry-title,
@@ -587,22 +714,82 @@
 
 @media (max-width: 600px) {
   .tma-app-page .tma-site-frame {
-    width: calc(100vw - 24px);
+    width: calc(100vw - 28px);
   }
 
-  .tma-app-page .tma-site-header__inner,
+  .tma-app-page .tma-site-header__inner {
+    gap: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .tma-app-page .tma-site-nav {
+    gap: 12px;
+  }
+
+  .tma-app-page .tma-site-nav__link {
+    font-size: 12px;
+  }
+
+  .tma-app-page .tma-site-nav__cta {
+    min-height: 36px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+
+  .tma-app-page .tma-app-intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .tma-app-page .tma-app-intro__note {
+    font-size: 11px;
+  }
+
   .tma-app-page .tma-site-footer__inner {
     align-items: flex-start;
-  }
-
-  .tma-app-page .tma-site-header__tagline {
-    max-width: 110px;
-    text-align: right;
-  }
-
-  .tma-app-page .tma-site-footer__inner {
     flex-direction: column;
     gap: 4px;
+  }
+}
+
+@media (max-width: 400px) {
+  .tma-app-page .tma-site-header__inner {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .tma-app-page .tma-site-nav {
+    width: 100%;
+  }
+
+  .tma-app-page .tma-site-nav__cta {
+    margin-left: auto;
+  }
+
+  .tma-app-page .tma-site-nav {
+    gap: 12px;
+  }
+
+  .tma-app-page .tma-site-nav__link {
+    font-size: 11px;
+  }
+
+  .tma-app-page .tma-site-nav__cta {
+    min-height: 34px;
+    padding: 0 9px;
+  }
+
+  .tma-app-page .tma-site-brand {
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .tma-app-page .tma-site-brand__mark {
+    width: 34px;
+    height: 34px;
   }
 }
 
